@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Athena — Your Intelligent PM Co-Pilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── Design Tokens ─────────────────────────────────────── */
+    :root {
+      --cream:   #FAF8F3;
+      --parchment: #F2EDE0;
+      --sage:    #A8B89A;
+      --sage-light: #D4DDCE;
+      --sage-dark:  #6B8060;
+      --gold:    #C9A94E;
+      --gold-light: #E8D5A0;
+      --blush:   #E8C9C1;
+      --ink:     #2C2B27;
+      --ink-mid: #5C5952;
+      --ink-soft: #8C8880;
+      --step-1:  #D4DDCE;
+      --step-2:  #E8D5A0;
+      --step-3:  #E8C9C1;
+      --step-4:  #C9D4E8;
+      --white:   #ffffff;
+      --radius:  16px;
+      --radius-lg: 24px;
+    }
+
+    /* ─── Reset & Base ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* ─── Noise Texture Overlay ─────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* ─── Typography ────────────────────────────────────────── */
+    h1, h2, h3 {
+      font-family: 'Instrument Serif', serif;
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    h1 { font-size: clamp(2.6rem, 6vw, 4.8rem); }
+    h2 { font-size: clamp(1.9rem, 4vw, 3rem); }
+    h3 { font-size: 1.25rem; }
+
+    p { color: var(--ink-mid); font-size: 1rem; }
+
+    .serif-italic { font-style: italic; color: var(--sage-dark); }
+
+    /* ─── Layout Helpers ────────────────────────────────────── */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    section { padding: 96px 0; }
+
+    /* ─── NAV ───────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(250, 248, 243, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--parchment);
+      padding: 16px 24px;
+    }
+
+    .nav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.4rem;
+      color: var(--ink);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-links a {
+      font-size: 0.875rem;
+      color: var(--ink-mid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--ink); }
+
+    .btn-nav {
+      background: var(--ink);
+      color: var(--cream) !important;
+      padding: 8px 18px;
+      border-radius: 100px;
+      font-size: 0.875rem !important;
+      transition: background 0.2s, transform 0.15s !important;
+    }
+    .btn-nav:hover { background: var(--sage-dark) !important; transform: translateY(-1px); }
+
+    /* ─── HERO ──────────────────────────────────────────────── */
+    #hero {
+      padding: 120px 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(201,169,78,0.12) 0%, rgba(168,184,154,0.1) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--parchment);
+      border: 1px solid var(--gold-light);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      color: var(--sage-dark);
+      font-weight: 500;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    .hero-headline {
+      max-width: 760px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    .hero-sub {
+      max-width: 560px;
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ink);
+      color: var(--cream);
+      padding: 14px 28px;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      background: var(--sage-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(107,128,96,0.3);
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink-mid);
+      font-size: 0.95rem;
+      text-decoration: none;
+      border-bottom: 1px dashed var(--sage);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--ink); border-color: var(--ink); }
+
+    .hero-visual {
+      margin-top: 72px;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    .terminal-card {
+      background: #1C1B18;
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      max-width: 680px;
+      box-shadow: 0 32px 80px rgba(44,43,39,0.15), 0 8px 24px rgba(44,43,39,0.08);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .terminal-dots span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .d1 { background: #FF5F56; }
+    .d2 { background: #FFBD2E; }
+    .d3 { background: #27C93F; }
+
+    .t-comment { color: #6B6B6B; }
+    .t-cmd { color: #C9A94E; }
+    .t-out { color: #A8B89A; }
+    .t-dim { color: #4A4A45; }
+    .t-white { color: #E8E6E0; }
+
+    /* ─── STATS STRIP ───────────────────────────────────────── */
+    .stats-strip {
+      background: var(--parchment);
+      border-top: 1px solid rgba(168,184,154,0.3);
+      border-bottom: 1px solid rgba(168,184,154,0.3);
+      padding: 32px 0;
+    }
+
+    .stats-grid {
+      display: flex;
+      justify-content: center;
+      gap: 64px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-num {
+      font-family: 'Instrument Serif', serif;
+      font-size: 2.4rem;
+      color: var(--ink);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+
+    /* ─── WHAT IS ATHENA ────────────────────────────────────── */
+    .section-label {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sage-dark);
+      margin-bottom: 20px;
+    }
+
+    .what-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      margin-top: 56px;
+    }
+
+    @media (max-width: 720px) {
+      .what-grid { grid-template-columns: 1fr; gap: 40px; }
+    }
+
+    .what-body { font-size: 1.05rem; line-height: 1.8; }
+    .what-body + .what-body { margin-top: 20px; }
+
+    .quote-block {
+      background: var(--parchment);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 20px 24px;
+      margin-top: 28px;
+      font-style: italic;
+      color: var(--ink-mid);
+      font-size: 0.95rem;
+    }
+
+    .pillars {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .pillar {
+      background: var(--white);
+      border: 1px solid var(--parchment);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .pillar:hover {
+      box-shadow: 0 8px 24px rgba(44,43,39,0.07);
+      transform: translateX(4px);
+    }
+
+    .pillar-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .pillar-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .pillar-desc { font-size: 0.875rem; color: var(--ink-soft); }
+
+    /* ─── SETUP STEPS ───────────────────────────────────────── */
+    #setup { background: var(--white); }
+
+    .steps-intro {
+      max-width: 600px;
+      margin-bottom: 64px;
+    }
+
+    .steps-intro p { font-size: 1.05rem; margin-top: 16px; }
+
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .step-block {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 0 32px;
+      position: relative;
+    }
+
+    .step-block:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 39px;
+      top: 80px;
+      bottom: -32px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--parchment), transparent);
+    }
+
+    .step-block + .step-block { margin-top: 32px; }
+
+    .step-num-col { display: flex; flex-direction: column; align-items: center; }
+
+    .step-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.4rem;
+      color: var(--ink);
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      position: relative;
+    }
+
+    .step-block:nth-child(1) .step-circle { background: var(--step-1); border-color: var(--sage-light); }
+    .step-block:nth-child(2) .step-circle { background: var(--step-2); border-color: var(--gold-light); }
+    .step-block:nth-child(3) .step-circle { background: var(--step-3); border-color: var(--blush); }
+    .step-block:nth-child(4) .step-circle { background: var(--step-4); border-color: #B8C8E8; }
+
+    .step-content {
+      padding-bottom: 40px;
+      padding-top: 8px;
+    }
+
+    .step-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 8px;
+    }
+
+    .step-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.7rem;
+      margin-bottom: 12px;
+      color: var(--ink);
+    }
+
+    .step-desc { font-size: 0.975rem; line-height: 1.75; margin-bottom: 24px; }
+
+    .optional-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gold-light);
+      border: 1px solid var(--gold);
+      color: #7A6020;
+      border-radius: 100px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    /* Sub-steps */
+    .sub-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .sub-step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: var(--cream);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      border: 1px solid var(--parchment);
+    }
+
+    .sub-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--cream);
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sub-text { font-size: 0.9rem; line-height: 1.5; }
+    .sub-text strong { font-weight: 600; color: var(--ink); }
+
+    /* OS Tabs */
+    .os-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: var(--cream);
+      padding: 4px;
+      border-radius: 12px;
+      width: fit-content;
+    }
+
+    .os-tab {
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--ink-mid);
+      transition: all 0.15s;
+    }
+    .os-tab.active {
+      background: var(--white);
+      color: var(--ink);
+      box-shadow: 0 1px 4px rgba(44,43,39,0.1);
+    }
+
+    .os-content { display: none; }
+    .os-content.active { display: block; }
+
+    /* Code snippet */
+    .code-block {
+      background: #1C1B18;
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: #A8B89A;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      border-radius: 6px;
+      color: #6B6B6B;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    /* Info Box */
+    .info-box {
+      background: linear-gradient(135deg, #EDF3EA 0%, #F5F0E8 100%);
+      border: 1px solid var(--sage-light);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      gap: 14px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--ink-mid);
+    }
+    .info-icon { font-size: 1.2rem; flex-shrink: 0; line-height: 1.4; }
+
+    /* Download Buttons */
+    .dl-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ink);
+      color: var(--cream);
+      padding: 10px 20px;
+      border-radius: 100px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .dl-btn:hover { background: var(--sage-dark); transform: translateY(-1px); }
+    .dl-btn.outline {
+      background: transparent;
+      border: 1.5px solid var(--ink);
+      color: var(--ink);
+    }
+    .dl-btn.outline:hover { background: var(--ink); color: var(--cream); }
+
+    /* ─── COMMANDS SECTION ──────────────────────────────────── */
+    #commands { background: var(--cream); }
+
+    .commands-intro {
+      max-width: 580px;
+      margin-bottom: 56px;
+    }
+
+    .commands-intro p { margin-top: 16px; font-size: 1.05rem; }
+
+    .domain-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .domain-group {}
+    .domain-heading {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .domain-heading::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--parchment);
+    }
+
+    .cmd-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .cmd-card {
+      background: var(--white);
+      border: 1px solid var(--parchment);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+      cursor: default;
+    }
+    .cmd-card:hover {
+      box-shadow: 0 8px 24px rgba(44,43,39,0.07);
+      transform: translateY(-2px);
+      border-color: var(--sage-light);
+    }
+
+    .cmd-name {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: var(--sage-dark);
+      font-weight: 600;
+      margin-bottom: 8px;
+      background: var(--step-1);
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+
+    .cmd-desc { font-size: 0.85rem; line-height: 1.55; color: var(--ink-mid); }
+
+    /* ─── METHODOLOGY ───────────────────────────────────────── */
+    #methodology { background: var(--parchment); }
+
+    .methods-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 48px;
+    }
+
+    .method-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      border: 1px solid rgba(201,169,78,0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .method-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(44,43,39,0.08); }
+
+    .method-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-light), var(--sage-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin: 0 auto 12px;
+    }
+
+    .method-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+    .method-work { font-size: 0.8rem; color: var(--ink-soft); font-style: italic; }
+
+    /* ─── CTA ───────────────────────────────────────────────── */
+    #cta {
+      background: var(--ink);
+      padding: 100px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #cta::before {
+      content: '🏛️';
+      font-size: 320px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.03;
+      pointer-events: none;
+    }
+
+    #cta h2 { color: var(--cream); }
+    #cta p { color: rgba(250,248,243,0.6); font-size: 1.05rem; margin-top: 16px; max-width: 520px; margin-left: auto; margin-right: auto; }
+
+    .cta-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gold);
+      color: var(--ink);
+      padding: 14px 32px;
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-cta:hover {
+      background: var(--gold-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(201,169,78,0.4);
+    }
+
+    .btn-cta-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(250,248,243,0.7);
+      font-size: 0.95rem;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(250,248,243,0.3);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-cta-ghost:hover { color: var(--cream); border-color: var(--cream); }
+
+    /* ─── FOOTER ────────────────────────────────────────────── */
+    footer {
+      background: #17161399;
+      border-top: 1px solid rgba(250,248,243,0.06);
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .footer-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.1rem;
+      color: var(--cream);
+      opacity: 0.5;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 0.8rem;
+      color: rgba(250,248,243,0.35);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: rgba(250,248,243,0.7); }
+
+    .footer-credit {
+      font-size: 0.75rem;
+      color: rgba(250,248,243,0.25);
+    }
+
+    /* ─── Animations ────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ─── Responsive ────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .step-block { grid-template-columns: 48px 1fr; gap: 0 16px; }
+      .step-circle { width: 44px; height: 44px; font-size: 1.2rem; }
+      .step-block::after { left: 23px !important; }
+      .dl-buttons { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ──────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">🏛️ Athe<span>na</span></a>
+    <ul class="nav-links">
+      <li><a href="#setup">Get Started</a></li>
+      <li><a href="#commands">Commands</a></li>
+      <li><a href="#methodology">Methodology</a></li>
+      <li><a href="https://github.com/manticorevault/athena_pm_skills" target="_blank" class="btn-nav">View on GitHub →</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ─── HERO ──────────────────────────────────────────── -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="container">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Built for Antigravity IDE · Open Source · Free
+    </div>
+    <h1 class="hero-headline">
+      The Intelligent<br><em class="serif-italic">Operating System</em><br>for Product Excellence
+    </h1>
+    <p class="hero-sub">
+      Athena transforms your Antigravity IDE into a world-class Product Management partner — embedding the wisdom of Teresa Torres, Marty Cagan, and Alberto Savoia directly into your daily workflow.
+    </p>
+    <div class="hero-actions">
+      <a href="#setup" class="btn-primary">
+        <span>⚡</span> Set up in 5 minutes
+      </a>
+      <a href="https://github.com/manticorevault/athena_pm_skills" target="_blank" class="btn-ghost">
+        View the source →
+      </a>
+    </div>
+
+    <div class="hero-visual">
+      <div class="terminal-card">
+        <div class="terminal-dots">
+          <span class="d1"></span><span class="d2"></span><span class="d3"></span>
+        </div>
+        <div class="t-comment"># In Antigravity, just type a slash command and press send</div><br>
+        <div><span class="t-dim">you →</span> <span class="t-cmd">/discover</span> <span class="t-white">Smart notification system for project management</span></div><br>
+        <div class="t-out">✦ Athena loading Discovery workflow...</div>
+        <div class="t-out">  ↳ Applying Opportunity Solution Trees (Teresa Torres)</div>
+        <div class="t-out">  ↳ Running Assumption Mapping framework</div>
+        <div class="t-out">  ↳ Designing validation experiments</div><br>
+        <div class="t-white">✅ Discovery Plan ready — 3 experiments, prioritised by risk.</div>
+        <div class="t-dim">   Share with your team or carry forward to /write-prd</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── STATS ─────────────────────────────────────────── -->
+<div class="stats-strip">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-num">65</span>
+        <span class="stat-label">PM Skills</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">36</span>
+        <span class="stat-label">Workflows</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">8</span>
+        <span class="stat-label">Domains</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">5+</span>
+        <span class="stat-label">PM Methodologies</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── WHAT IS ATHENA ────────────────────────────────── -->
+<section id="what">
+  <div class="container">
+    <span class="section-label reveal">What is Athena</span>
+    <div class="what-grid">
+      <div class="reveal">
+        <h2>You've read the books.<br><em class="serif-italic">Now let them work for you.</em></h2>
+        <p class="what-body" style="margin-top:24px">
+          Every Product Manager knows this feeling: it's 4 PM on a Thursday and you need to write a PRD, design an experiment, or prepare a competitive battlecard — and you're starting from scratch. Every. Single. Time.
+        </p>
+        <p class="what-body">
+          Athena eliminates that gap. By embedding 65 deeply structured PM skills and 36 orchestrated workflows into your Antigravity IDE, Athena turns proven product frameworks into executable, repeatable processes.
+        </p>
+        <div class="quote-block">
+          "You don't just get advice — you get a guided, step-by-step co-pilot that asks the right questions, applies the right frameworks, and produces professional-grade deliverables in minutes."
+        </div>
+      </div>
+      <div class="pillars reveal">
+        <div class="pillar">
+          <div class="pillar-icon">🧠</div>
+          <div>
+            <div class="pillar-title">Skills — The Knowledge Base</div>
+            <div class="pillar-desc">65 structured PM frameworks (Assumption Mapping, Porter's Five Forces, OST…) loaded automatically based on your workflow.</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon">⚙️</div>
+          <div>
+            <div class="pillar-title">Workflows — The Orchestrators</div>
+            <div class="pillar-desc">36 slash commands that chain multiple skills into comprehensive, guided end-to-end processes with checkpoints and deliverables.</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon">🐍</div>
+          <div>
+            <div class="pillar-title">Scripts — The Real-World Layer</div>
+            <div class="pillar-desc">When Athena needs live data — like scraping a competitor's pricing page — she delegates to real Python code, ensuring strategy built on reality, not hallucinations.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SETUP STEPS ───────────────────────────────────── -->
+<section id="setup">
+  <div class="container">
+    <div class="steps-intro reveal">
+      <span class="section-label">Get Started</span>
+      <h2>From zero to PM co-pilot<br><em class="serif-italic">in a few minutes</em></h2>
+      <p>No prior coding experience required. Follow these steps and you'll have Athena running in your IDE before your next meeting.</p>
+    </div>
+
+    <div class="steps-list">
+
+      <!-- ── STEP 1: Install Antigravity ── -->
+      <div class="step-block reveal">
+        <div class="step-num-col">
+          <div class="step-circle">1</div>
+        </div>
+        <div class="step-content">
+          <span class="step-tag">Step One</span>
+          <h3 class="step-title">Install Antigravity IDE</h3>
+          <p class="step-desc">
+            Antigravity is Google's free, AI-first development platform — your command centre for running Athena. It's available for Mac, Windows, and Linux, and takes about 5 minutes to install.
+          </p>
+
+          <div class="dl-buttons">
+            <a href="https://antigravity.google/download" target="_blank" class="dl-btn">
+              🍎 Download for Mac
+            </a>
+            <a href="https://antigravity.google/download" target="_blank" class="dl-btn outline">
+              🪟 Download for Windows
+            </a>
+            <a href="https://antigravity.google/download" target="_blank" class="dl-btn outline">
+              🐧 Download for Linux
+            </a>
+          </div>
+
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchOS(this, 'mac')">Mac</button>
+            <button class="os-tab" onclick="switchOS(this, 'win')">Windows</button>
+            <button class="os-tab" onclick="switchOS(this, 'linux')">Linux</button>
+          </div>
+
+          <div id="os-mac" class="os-content active">
+            <div class="sub-steps">
+              <div class="sub-step">
+                <div class="sub-num">1</div>
+                <div class="sub-text">Open the downloaded <strong>.dmg</strong> file from your Downloads folder.</div>
+              </div>
+              <div class="sub-step">
+                <div class="sub-num">2</div>
+                <div class="sub-text">Drag the <strong>Antigravity</strong> icon to your Applications folder.</div>
+              </div>
+              <div class="sub-step">
+                <div class="sub-num">3</div>
+                <div class="sub-text">Open Antigravity from Applications. Click through the welcome screens — choose <strong>"Start Fresh"</strong> unless you want to import VS Code settings.</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="os-win" class="os-content">
+            <div class="sub-steps">
+              <div class="sub-step">
+                <div class="sub-num">1</div>
+                <div class="sub-text">Double-click the downloaded <strong>.exe</strong> installer.</div>
+              </div>
+              <div class="sub-step">
+                <div class="sub-num">2</div>
+                <div class="sub-text">Follow the installation wizard. Accept defaults — they're fine.</div>
+              </div>
+              <div class="sub-step">
+                <div class="sub-num">3</div>
+                <div class="sub-text">Launch Antigravity from the Start menu. Choose <strong>"Start Fresh"</strong> on first run.</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="os-linux" class="os-content">
+            <p class="sub-text" style="margin-bottom:12px;font-size:0.9rem;color:var(--ink-mid)">For Ubuntu/Debian — run these commands in your terminal:</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              <div># Add the Antigravity repository</div>
+              <div>curl -fsSL https://antigravity.google/linux/gpg | sudo apt-key add -</div>
+              <div>sudo add-apt-repository "deb [arch=amd64] https://antigravity.google/linux/deb stable main"</div>
+              <br>
+              <div># Install</div>
+              <div>sudo apt update &amp;&amp; sudo apt install antigravity</div>
+              <br>
+              <div># Launch</div>
+              <div>antigravity</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: Google Account (Optional) ── -->
+      <div class="step-block reveal">
+        <div class="step-num-col">
+          <div class="step-circle">2</div>
+        </div>
+        <div class="step-content">
+          <span class="step-tag">Step Two</span>
+          <div class="optional-badge">✦ Optional — but recommended</div>
+          <h3 class="step-title">Connect a Google Account</h3>
+          <p class="step-desc">
+            Signing in with a personal Gmail account unlocks Gemini 3 Pro with generous rate limits — completely free. This gives Athena more power to reason deeply, write long deliverables, and scrape live market data for you.
+          </p>
+
+          <div class="sub-steps">
+            <div class="sub-step">
+              <div class="sub-num">1</div>
+              <div class="sub-text">On first launch, Antigravity will prompt you to sign in. Click <strong>"Sign in with Google"</strong>.</div>
+            </div>
+            <div class="sub-step">
+              <div class="sub-num">2</div>
+              <div class="sub-text">Use a <strong>personal Gmail account</strong> (not a Google Workspace / company account, as policies may restrict access).</div>
+            </div>
+            <div class="sub-step">
+              <div class="sub-num">3</div>
+              <div class="sub-text">Once signed in, select <strong>Gemini 3 Pro</strong> as your model from the model selector. No API key needed — it's pre-integrated.</div>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <span class="info-icon">💡</span>
+            <span>Don't have a Gmail account? No problem — Antigravity works without signing in too, or you can bring your own <strong>Claude / OpenAI API key</strong> via the model settings panel.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: Clone / Open Athena ── -->
+      <div class="step-block reveal">
+        <div class="step-num-col">
+          <div class="step-circle">3</div>
+        </div>
+        <div class="step-content">
+          <span class="step-tag">Step Three</span>
+          <h3 class="step-title">Open Athena as a Project</h3>
+          <p class="step-desc">
+            Athena lives inside a GitHub repository. You'll clone it (download a copy) to your computer, then open it as a project in Antigravity. That's it — no installation, no configuration files to edit.
+          </p>
+
+          <p style="font-size:0.875rem;color:var(--ink-mid);margin-bottom:12px;">In your terminal (or Antigravity's built-in terminal), run:</p>
+          <div class="code-block" style="margin-bottom:16px">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <span style="color:#C9A94E">git</span> clone https://github.com/manticorevault/athena_pm_skills.git<br>
+            <span style="color:#C9A94E">cd</span> athena_pm_skills
+          </div>
+
+          <div class="sub-steps">
+            <div class="sub-step">
+              <div class="sub-num">1</div>
+              <div class="sub-text">If you don't have Git installed, <a href="https://git-scm.com/downloads" target="_blank" style="color:var(--sage-dark)">download it here</a> first (it's a one-click installer).</div>
+            </div>
+            <div class="sub-step">
+              <div class="sub-num">2</div>
+              <div class="sub-text">In Antigravity, go to <strong>File → Open Folder</strong> and select the <strong>athena_pm_skills</strong> folder you just cloned.</div>
+            </div>
+            <div class="sub-step">
+              <div class="sub-num">3</div>
+              <div class="sub-text">Antigravity will load the project. You'll see the <strong>.agents/</strong> folder — that's where all of Athena's intelligence lives.</div>
+            </div>
+          </div>
+
+          <div class="info-box" style="margin-top:16px">
+            <span class="info-icon">🔒</span>
+            <span><strong>Not a developer?</strong> You can also download the repository as a ZIP file from GitHub (click the green "Code" button → "Download ZIP"), unzip it, and open the folder in Antigravity.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 4: Use Athena ── -->
+      <div class="step-block reveal">
+        <div class="step-num-col">
+          <div class="step-circle">4</div>
+        </div>
+        <div class="step-content">
+          <span class="step-tag">Step Four</span>
+          <h3 class="step-title">Start a Conversation with Athena</h3>
+          <p class="step-desc">
+            With the project open, open a new chat in Antigravity's Agent panel. You're now talking to Athena. Type any slash command below and press Enter — Athena will guide you through every step.
+          </p>
+
+          <div class="code-block" style="margin-bottom:20px">
+            <span class="t-comment"># Try your first command:</span><br><br>
+            <span style="color:#C9A94E">/discover</span> <span style="color:#E8E6E0">A mobile app that helps remote teams align on priorities</span><br><br>
+            <span class="t-comment"># Or jump straight into a PRD:</span><br>
+            <span style="color:#C9A94E">/write-prd</span> <span style="color:#E8E6E0">User notifications for our SaaS dashboard</span>
+          </div>
+
+          <div class="info-box">
+            <span class="info-icon">✨</span>
+            <span>Athena will ask you clarifying questions, apply frameworks automatically, and produce a full, structured deliverable — ready to share with your team or stakeholders.</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end steps-list -->
+  </div>
+</section>
+
+<!-- ─── COMMANDS ──────────────────────────────────────── -->
+<section id="commands">
+  <div class="container">
+    <div class="commands-intro reveal">
+      <span class="section-label">All 36 Workflows</span>
+      <h2>Every PM task.<br><em class="serif-italic">One slash command.</em></h2>
+      <p>Browse Athena's complete command library. Each workflow chains multiple frameworks together and produces a professional, shareable deliverable.</p>
+    </div>
+
+    <div class="domain-grid">
+
+      <div class="domain-group reveal">
+        <div class="domain-heading">🔍 Product Discovery</div>
+        <div class="cmd-cards">
+          <div class="cmd-card"><div class="cmd-name">/discover</div><div class="cmd-desc">Full discovery cycle — ideation through assumption mapping to experiment design. Athena's flagship 15–30 min sprint.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/brainstorm</div><div class="cmd-desc">Generate 10+ product ideas from PM, Designer, and Engineer perspectives for any product.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/triage-requests</div><div class="cmd-desc">Transform a messy backlog of feature requests into a structured, scored, and actionable priority list.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/interview</div><div class="cmd-desc">Prepare a customer interview script — or synthesise a transcript into themes, quotes, and opportunities.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/setup-metrics</div><div class="cmd-desc">Design a full metrics dashboard: North Star, input metrics, health metrics, and alert thresholds.</div></div>
+        </div>
+      </div>
+
+      <div class="domain-group reveal">
+        <div class="domain-heading">♟️ Product Strategy</div>
+        <div class="cmd-cards">
+          <div class="cmd-card"><div class="cmd-name">/strategy</div><div class="cmd-desc">Comprehensive strategy via the 9-section Strategy Canvas — vision, competitive moat, key metrics, and strategic bets.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/business-model</div><div class="cmd-desc">Explore Lean Canvas, Business Model Canvas, or Value Proposition frameworks section by section.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/market-scan</div><div class="cmd-desc">SWOT, PESTLE, Porter's Five Forces, and Ansoff Matrix in one comprehensive scan.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/pricing</div><div class="cmd-desc">Design a pricing strategy — freemium, tiered, usage-based, or enterprise — with test designs.</div></div>
+        </div>
+      </div>
+
+      <div class="domain-group reveal">
+        <div class="domain-heading">⚙️ Execution</div>
+        <div class="cmd-cards">
+          <div class="cmd-card"><div class="cmd-name">/write-prd</div><div class="cmd-desc">Full PRD with problem definition, user stories, success metrics, and launch criteria.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/write-stories</div><div class="cmd-desc">Break a feature into dev-ready backlog items with acceptance criteria and definitions of done.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/sprint</div><div class="cmd-desc">Plan a sprint, run a retro, or generate release notes — adapts to your current phase.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/pre-mortem</div><div class="cmd-desc">Identify what could go wrong before launch — across technical, market, and user dimensions.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/meeting-notes</div><div class="cmd-desc">Paste a transcript → clean, shareable notes with decisions and action items in seconds.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/stakeholder-map</div><div class="cmd-desc">Map stakeholders on a Power × Interest grid with tailored communication plans.</div></div>
+        </div>
+      </div>
+
+      <div class="domain-group reveal">
+        <div class="domain-heading">🔬 Market Research & 📈 Analytics</div>
+        <div class="cmd-cards">
+          <div class="cmd-card"><div class="cmd-name">/competitive-analysis</div><div class="cmd-desc">Enhanced with live web scraping — Athena pulls real competitor pricing and features before analysing.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/research-users</div><div class="cmd-desc">Build personas, segment users, and map the customer journey from your research data.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/analyze-feedback</div><div class="cmd-desc">Paste NPS responses or support tickets — get structured, actionable themes from any volume.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/analyze-test</div><div class="cmd-desc">A/B test results with statistical significance, sample validation, and a clear ship/extend/stop call.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/write-query</div><div class="cmd-desc">Describe what you need in plain English → production-ready SQL for BigQuery, PostgreSQL, and more.</div></div>
+        </div>
+      </div>
+
+      <div class="domain-group reveal">
+        <div class="domain-heading">🎯 Go-To-Market & 🌱 Growth</div>
+        <div class="cmd-cards">
+          <div class="cmd-card"><div class="cmd-name">/plan-launch</div><div class="cmd-desc">Full GTM playbook: beachhead segment, ICP, messaging, channels, and launch plan.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/battlecard</div><div class="cmd-desc">Sales-ready competitive battlecard: positioning, objection handling, and win strategies.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/growth-strategy</div><div class="cmd-desc">Map viral, content, paid, and sales-assisted growth loops with metrics for each.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/north-star</div><div class="cmd-desc">Define your North Star Metric and input metrics — validated against best practices.</div></div>
+        </div>
+      </div>
+
+      <div class="domain-group reveal">
+        <div class="domain-heading">🛠️ PM Toolkit</div>
+        <div class="cmd-cards">
+          <div class="cmd-card"><div class="cmd-name">/review-resume</div><div class="cmd-desc">PM resume review against 10 best practices — structure, impact metrics, keywords, and coaching.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/tailor-resume</div><div class="cmd-desc">Align your resume to a specific job description — keyword and experience optimisation.</div></div>
+          <div class="cmd-card"><div class="cmd-name">/proofread</div><div class="cmd-desc">Surgical precision editing — fixes grammar, logic, and flow without rewriting your voice.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── METHODOLOGY ───────────────────────────────────── -->
+<section id="methodology">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Standing on the Shoulders of Giants</span>
+      <h2 style="max-width:560px">The wisdom of the discipline's<br><em class="serif-italic">greatest minds, automated</em></h2>
+      <p style="margin-top:16px;max-width:540px;font-size:1.05rem">
+        Athena doesn't reinvent the wheel — she automates the best wheels ever built. Every skill and framework is rigorously grounded in the work of PM's most respected thinkers.
+      </p>
+    </div>
+    <div class="methods-grid">
+      <div class="method-card reveal">
+        <div class="method-avatar">🌿</div>
+        <div class="method-name">Teresa Torres</div>
+        <div class="method-work">Continuous Discovery Habits</div>
+        <p style="font-size:0.8rem;margin-top:8px;color:var(--ink-soft)">OSTs, assumption mapping, experiment design</p>
+      </div>
+      <div class="method-card reveal">
+        <div class="method-avatar">🏆</div>
+        <div class="method-name">Marty Cagan</div>
+        <div class="method-work">INSPIRED & TRANSFORMED</div>
+        <p style="font-size:0.8rem;margin-top:8px;color:var(--ink-soft)">Product empowerment, discovery vs. delivery</p>
+      </div>
+      <div class="method-card reveal">
+        <div class="method-avatar">🔬</div>
+        <div class="method-name">Alberto Savoia</div>
+        <div class="method-work">The Right It</div>
+        <p style="font-size:0.8rem;margin-top:8px;color:var(--ink-soft)">Pretotyping, XYZ hypotheses, validation</p>
+      </div>
+      <div class="method-card reveal">
+        <div class="method-avatar">📐</div>
+        <div class="method-name">Dan Olsen</div>
+        <div class="method-work">The Lean Product Playbook</div>
+        <p style="font-size:0.8rem;margin-top:8px;color:var(--ink-soft)">Product-market fit, MVP hierarchy</p>
+      </div>
+      <div class="method-card reveal">
+        <div class="method-avatar">🏃</div>
+        <div class="method-name">Ash Maurya</div>
+        <div class="method-work">Running Lean</div>
+        <p style="font-size:0.8rem;margin-top:8px;color:var(--ink-soft)">Lean Canvas, riskiest assumption testing</p>
+      </div>
+    </div>
+    <div class="quote-block reveal" style="max-width:680px;margin-top:40px">
+      The foundational blueprints for these skills were masterfully curated by <strong>Paweł Huryn</strong> via <a href="https://www.productcompass.pm/" target="_blank" style="color:var(--sage-dark)">The Product Compass Newsletter</a>. Athena stands on the shoulders of giants.
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ───────────────────────────────────────────── -->
+<section id="cta">
+  <div class="container">
+    <h2>Empower your IDE.<br><em class="serif-italic">Engineer better outcomes.</em></h2>
+    <p>Stop starting from scratch. Start shipping products that matter.</p>
+    <div class="cta-actions">
+      <a href="#setup" class="btn-cta">⚡ Get started free</a>
+      <a href="https://github.com/manticorevault/athena_pm_skills" target="_blank" class="btn-cta-ghost">View on GitHub →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────── -->
+<footer style="background:#17161399; border-top:1px solid rgba(250,248,243,0.06); padding:32px 24px; text-align:center;">
+  <div class="footer-inner">
+    <div class="footer-logo">🏛️ Athena</div>
+    <ul class="footer-links">
+      <li><a href="https://github.com/manticorevault/athena_pm_skills" target="_blank">GitHub</a></li>
+      <li><a href="https://github.com/manticorevault/athena_pm_skills/blob/main/ARCHITECTURE.md" target="_blank">Architecture</a></li>
+      <li><a href="https://antigravity.google" target="_blank">Antigravity IDE</a></li>
+      <li><a href="https://github.com/manticorevault/athena_pm_skills/blob/main/LICENSE" target="_blank">MIT License</a></li>
+    </ul>
+    <p class="footer-credit">Built for Antigravity · Powered by PM Wisdom · Open Source<br>Inspired by Paweł Huryn's Product Compass Newsletter</p>
+  </div>
+</footer>
+
+<script>
+  /* ── OS Tab Switcher ── */
+  function switchOS(btn, os) {
+    document.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.os-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('os-' + os).classList.add('active');
+  }
+
+  /* ── Copy Code ── */
+  function copyCode(btn) {
+    const block = btn.closest('.code-block');
+    const text = block.innerText.replace('Copy\n', '').replace('Copied!\n', '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+
+  /* ── Scroll Reveal ── */
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        // slight stagger for sibling elements
+        const delay = Array.from(e.target.parentElement.children).indexOf(e.target) * 60;
+        setTimeout(() => e.target.classList.add('visible'), delay);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
